@@ -1,4 +1,5 @@
 
+
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
@@ -21,10 +22,6 @@ const renderer = new THREE.WebGLRenderer({
 renderer.shadowMap.enabled = true
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
-
-const controls = new OrbitControls(camera, renderer.domElement)
-
-
 
 
 class Box extends THREE.Mesh {
@@ -66,9 +63,9 @@ class Box extends THREE.Mesh {
     this.back = this.position.z - this.depth / 2
 
     this.velocity = velocity
-    this.gravity = -0.002
+    this.gravity = -0.0001
   
-    //this.zAcceleration = zAcceleration
+    this.zAcceleration = zAcceleration
   }
 
   updateSides() {
@@ -103,7 +100,7 @@ class Box extends THREE.Mesh {
         box2: ground
       })
     ) {
-      const friction = 0.5
+      const friction = 100
       this.velocity.y *= friction
       this.velocity.y = -this.velocity.y
     } else this.position.y += this.velocity.y
@@ -132,14 +129,15 @@ const cube = new Box({
 cube.castShadow = true
 scene.add(cube)
 
+
 const ground = new Box({
-  width: 1000,
+  width: 10000,
   height: 0.1,
   depth: 1000,
-  color: '#000000',
+  color: '#D2B48C',
   position: {
     x: 0,
-    y: -2,
+    y: -20,
     z: 0
   }
 })
@@ -156,32 +154,8 @@ scene.add(light)
 scene.add(new THREE.AmbientLight(0xffffff, 0.5))
 
 camera.position.z = 5
-console.log(ground.top)
-console.log(cube.bottom)
-
-
-
-
-      
-
-      // Criando as estrelas
-      const starGeometry = new THREE.SphereGeometry(0.015, 10, 10);
-      const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
-      for (let i = 0; i < 1000; i++) {
-        const star = new THREE.Mesh(starGeometry, starMaterial);
-
-        // Definindo posição aleatória das estrelas
-        star.position.x = Math.random() * 30 - 15;
-        star.position.y = Math.random() * 10 - 5;
-        star.position.z = Math.random() * 100 - 5;
-
-        scene.add(star);
-
-      }
-
-
-
+//console.log(ground.top)
+//console.log(cube.bottom)
 
 
 const keys = {
@@ -237,89 +211,71 @@ window.addEventListener('keyup', (event) => {
 })
 
 const enemies = []
-
+const estrelas = []
 let frames = 0
-let spawnRate = 200
+let spawnRate = 10
 
 
 // Definir posição inicial da câmera igual à posição do cubo
 camera.position.set(0, 0, 5);
 
-// Fazer a câmera olhar para o centro do cubo
-camera.lookAt(cube.position);
-
-
-
 
 function animate() {
   const animationId = requestAnimationFrame(animate)
-
-
+  
   //sdcube.position.x += 0.01;
 
   // Fazer a câmera seguir o cubo
   camera.position.x = cube.position.x;
+  camera.position.y = cube.position.y + 1.5;
+  camera.position.z = cube.position.z + 5;
   camera.lookAt(cube.position);
 
 
   renderer.render(scene, camera)
 
+  const vel = 0.1
   // movement code
   cube.velocity.x = 0
-  cube.velocity.z = 0
-  if (keys.a.pressed) cube.velocity.x = -0.05
-  else if (keys.d.pressed) cube.velocity.x = 0.05
+  cube.velocity.z = -0.8*frames/1000
+  if (keys.a.pressed) cube.velocity.x = -0.1
+  else if (keys.d.pressed) cube.velocity.x = 0.1
 
-  if (keys.s.pressed) cube.velocity.y = -0.05
-  else if (keys.w.pressed) cube.velocity.y = 0.05
+  if (keys.s.pressed) cube.velocity.y = -0.1
+  else if (keys.w.pressed) cube.velocity.y = 0.1
 
   cube.update(ground)
  
-  
-  enemies.forEach((enemy) => {
-    enemy.update(ground)
-    if (
-      boxCollision({
-        box1: cube,
-        box2: enemy
-      })
-    ) {
-      cancelAnimationFrame(animationId)
-    }
-  })
-
-  
-
- 
   if (frames % spawnRate === 0) {
-    if (spawnRate > 5) spawnRate -= 4
-
+    if (spawnRate > 40) spawnRate -= 0.1
     const enemy = new Box({
       width: 1,
       height: 1,
       depth: 1,
       position: {
         x: (Math.random() - 0.5) * 70,
-        y: (Math.random() - 0.5) * 70,
-        z: -70
+        y: (Math.random() - 0.5) * 50,
+        z: (Math.random() - 1) * 20000
       },
       velocity: {
         x: 0,
         y: 0,
-        z: 0.105  //incrementa em funcao do tempo
+        z: 0.205  //incrementa em funcao do tempo
       },
       color: 'red',
-      //zAcceleration: true
+      zAcceleration: true
     })
     enemy.castShadow = true
     scene.add(enemy)
-    enemies.push(enemy)
+    enemies.gravity = -0.1;
+    //enemies.push(enemy)
   }
-  
 
+  
   frames++
   // cube.position.y += -0.01
   // cube.rotation.x += 0.01
   // cube.rotation.y += 0.01
 }
 //animate()
+
